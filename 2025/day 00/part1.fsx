@@ -2,7 +2,7 @@
 open Swensen.Unquote
 
 let input =
-    System.IO.File.ReadAllLines $"{__SOURCE_DIRECTORY__}/notes.txt"
+    System.IO.File.ReadAllLines $"{__SOURCE_DIRECTORY__}/part1.txt"
     |> List.ofSeq
 
 let example =
