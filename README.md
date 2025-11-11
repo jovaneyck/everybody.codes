@@ -1,2 +1,2 @@
 # everybody.codes
-My take on everybody.codes challenges
+My take on [everybody.codes](https://everybody.codes/) challenges

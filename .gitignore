@@ -55,3 +55,7 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+/Folder.DotSettings.user
+**/part1.txt
+**/part2.txt
+**/part3.txt
