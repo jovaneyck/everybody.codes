@@ -25,18 +25,47 @@ let parse (input : string) =
         |> Array.map int
     Complex.c coords.[0] coords.[1]
 
-let n = parse example
+let upperleft = parse example
+let width = 1_000
+let sampleSize = 100
+let diff = width / sampleSize
 
-let solve a =
-    let rec loop count result =
-        if count = 0 then
-            result
+let sampleGrid =
+    seq {
+        for diff_imag in 0 .. diff .. width do
+        for diff_real in 0 .. diff .. width do
+            Complex.add upperleft (Complex.c diff_real diff_imag)
+    }
+    
+let mandelbrot (c: Complex) =
+    let rec loop n checkResult =
+        // printfn $"%d{n}: %A{checkResult}"
+        if n = 100 then
+            true
         else
-            let result = Complex.multiply result result
-            let result = Complex.divide result (Complex.c 10 10)
-            let result = Complex.add result a
-            loop (count - 1) result
-    loop 3 (Complex.c 0 0)
+            let acc' = Complex.add (Complex.divide (Complex.multiply checkResult checkResult) (Complex.c 100_000 100_000)) c
+            if acc'.Real < -1_000_000 then false
+            elif acc'.Real > 1_000_000 then false
+            elif acc'.Imaginary < -1_000_000 then false
+            elif acc'.Imaginary > 1_000_000 then false
+            else loop (n + 1) acc'
+    loop 1 (Complex.c 0 0)
+
+mandelbrot (Complex.c 35460 -64910)
+
+let set =
+    sampleGrid
+    |> Seq.map (fun loc -> (loc, mandelbrot loc))
+    |> Seq.toList
+    
+let render (grid : ('a * bool) list) = 
+    [for row in 0 .. sampleSize do
+         [for col in 0 .. sampleSize do
+             let idx = row * (sampleSize + 1) + col
+             if snd grid.[idx] then "X" else "."] |> String.concat ""
+    ] |> String.concat "\n"
+    |> printfn "%s"
+render set
 
 let run () =
     printf "Testing.."
@@ -48,10 +77,9 @@ let run () =
     test <@ Complex.divide (Complex.c 11 12) (Complex.c 3 5) = Complex.c 3 2 @>
     test <@ Complex.divide (Complex.c -10 -12) (Complex.c 2 2) = Complex.c -5 -6 @>
     test <@ Complex.divide (Complex.c -11 -12) (Complex.c 3 5) = Complex.c -3 -2 @>
-    test <@ example |> parse |> solve = Complex.c 357 862 @>
     printfn "...done!"
 
 run ()
 
-let c = input |> parse |> solve
+let c = input |> parse
 $"[{c.Real},{c.Imaginary}]"
