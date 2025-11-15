@@ -1,9 +1,9 @@
 #r "nuget: Unquote"
 open Swensen.Unquote
 
-type Complex = { Real: int; Imaginary: int }
+type Complex = { Real: int64; Imaginary: int64 }
 module Complex =
-    let c real imaginary = { Real = real; Imaginary = imaginary }
+    let c real imaginary = { Real = int64 real; Imaginary = int64 imaginary }
 
     let add c1 c2 = c (c1.Real + c2.Real) (c1.Imaginary + c2.Imaginary)
     let multiply c1 c2 =
@@ -25,7 +25,7 @@ let parse (input : string) =
         |> Array.map int
     Complex.c coords.[0] coords.[1]
 
-let upperleft = parse example
+let upperleft = parse input
 let width = 1_000
 let sampleSize = 100
 let diff = width / sampleSize
@@ -38,20 +38,21 @@ let sampleGrid =
     }
     
 let mandelbrot (c: Complex) =
-    let rec loop n checkResult =
-        // printfn $"%d{n}: %A{checkResult}"
-        if n = 100 then
+    let rec loop n acc =
+        // printfn $"%d{n}: %A{acc}"
+        if n > 100 then
             true
         else
-            let acc' = Complex.add (Complex.divide (Complex.multiply checkResult checkResult) (Complex.c 100_000 100_000)) c
-            if acc'.Real < -1_000_000 then false
-            elif acc'.Real > 1_000_000 then false
-            elif acc'.Imaginary < -1_000_000 then false
-            elif acc'.Imaginary > 1_000_000 then false
-            else loop (n + 1) acc'
-    loop 1 (Complex.c 0 0)
-
-mandelbrot (Complex.c 35460 -64910)
+            let squared = Complex.multiply acc acc
+            let divided = Complex.divide squared (Complex.c 100_000L 100_000L)
+            if divided.Real < -1_000_000L then false
+            elif divided.Real > 1_000_000L then false
+            elif divided.Imaginary < -1_000_000L then false
+            elif divided.Imaginary > 1_000_000L then false
+            else 
+                let acc' = Complex.add divided c
+                loop (n + 1) acc'
+    loop 1 (Complex.c 0L 0L)
 
 let set =
     sampleGrid
@@ -67,6 +68,8 @@ let render (grid : ('a * bool) list) =
     |> printfn "%s"
 render set
 
+set |> Seq.filter snd |> Seq.length
+
 let run () =
     printf "Testing.."
     test <@ Complex.add (Complex.c 1 1) (Complex.c 2 2) = Complex.c 3 3 @>
@@ -77,6 +80,20 @@ let run () =
     test <@ Complex.divide (Complex.c 11 12) (Complex.c 3 5) = Complex.c 3 2 @>
     test <@ Complex.divide (Complex.c -10 -12) (Complex.c 2 2) = Complex.c -5 -6 @>
     test <@ Complex.divide (Complex.c -11 -12) (Complex.c 3 5) = Complex.c -3 -2 @>
+    
+    // Mandelbrot tests - points that should be engraved
+    test <@ mandelbrot (Complex.c 35630 -64880) = true @>
+    test <@ mandelbrot (Complex.c 35630 -64870) = true @>
+    test <@ mandelbrot (Complex.c 35640 -64860) = true @>
+    test <@ mandelbrot (Complex.c 36230 -64270) = true @>
+    test <@ mandelbrot (Complex.c 36250 -64270) = true @>
+    
+    // Mandelbrot tests - points that should NOT be engraved
+    test <@ mandelbrot (Complex.c 35460 -64910) = false @>
+    test <@ mandelbrot (Complex.c 35470 -64910) = false @>
+    test <@ mandelbrot (Complex.c 35480 -64910) = false @>
+    test <@ mandelbrot (Complex.c 35680 -64850) = false @>
+    test <@ mandelbrot (Complex.c 35630 -64830) = false @>
     printfn "...done!"
 
 run ()
