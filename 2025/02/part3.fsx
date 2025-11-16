@@ -14,7 +14,7 @@ module Complex =
         c (c1.Real / c2.Real) (c1.Imaginary / c2.Imaginary)
         
 let input =
-    System.IO.File.ReadAllText $"{__SOURCE_DIRECTORY__}/part2.txt"
+    System.IO.File.ReadAllText $"{__SOURCE_DIRECTORY__}/part3.txt"
 
 let example = """A=[35300,-64910]"""
 
@@ -73,10 +73,10 @@ let render sampleSize (grid : ('a * bool) list) =
     ] |> String.concat "\n"
     |> printfn "%s"
 
-let sampleSize = 100
+let sampleSize = 1_000
 
-let set = solve sampleSize example
-render sampleSize set
+let set = solve sampleSize input
+// render sampleSize set
 set |> Seq.filter snd |> Seq.length
 
 let run () =
